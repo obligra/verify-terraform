@@ -84,7 +84,7 @@ function applyPolicy(body) {
     }
   }
 
-  if (droppedCount > 0 || redactedCount > 0) {
+  if ((sec.logRedactions !== false) && (droppedCount > 0 || redactedCount > 0)) {
     log({ event: 'policy_applied', mode: POLICY.mode, droppedFields: droppedCount, redactedFields: redactedCount });
   }
 
