@@ -248,6 +248,61 @@ Expected response (HTTP 201):
 - You own the Lambda, the API Gateway, and the policy
 - Obligra has no access to your account, your VPC, or your data at rest
 
+## What Happens After Deployment
+
+1. Your application sends a POST to the proxy endpoint
+2. The Lambda applies your capture policy (field filtering happens here)
+3. Only approved fields are forwarded to the Verify API
+4. Verify creates a signed decision record and returns a `decisionRecordId`
+5. The record is retrievable and verifiable in the Verify Console
+6. Verification confirms cryptographic integrity (hash + signature)
+
+## Deployment Models
+
+| Model | Who | When |
+|-------|-----|------|
+| **Builder** | Individual developer | Evaluation, sandbox, SDK testing — no proxy needed |
+| **Production** | Engineering team | Single-team production workloads — proxy recommended |
+| **Governance** | Platform/compliance team | Multi-team, compliance-required — proxy + policy required |
+| **Enterprise** | Central infrastructure | Multi-account, regulated — proxy + policy + custom domain |
+
+This Terraform module supports Production, Governance, and Enterprise patterns.
+
+## Common Setup Issues
+
+| Issue | Quick Fix | Details |
+|-------|-----------|--------|
+| Record never appears in Verify | Check API base URL and workspace alignment | [Troubleshooting →](docs/troubleshooting.md#record-never-appears-in-verify) |
+| Invalid API key (401) | Ensure full key format `obv_{prefix}.{secret}` | [Troubleshooting →](docs/troubleshooting.md#invalid-api-key) |
+| Capture policy skipping records | Check policy JSON for syntax errors | [Troubleshooting →](docs/troubleshooting.md#capture-policy-skipped-record) |
+| Wrong AWS account deployment | Run `aws sts get-caller-identity` first | [Troubleshooting →](docs/troubleshooting.md#wrong-aws-account-deployment) |
+| Verification unavailable | Confirm environment and workspace match | [Troubleshooting →](docs/troubleshooting.md#verification-issues) |
+| CloudWatch logs appear empty | Check Lambda invocation and log group | [Troubleshooting →](docs/troubleshooting.md#cloudwatch-logs-look-empty) |
+
+## Validation Checklist
+
+After deployment, confirm each step passes:
+
+| # | Check | Expected |
+|---|-------|----------|
+| 1 | `aws sts get-caller-identity` | Correct account ID |
+| 2 | `terraform output proxy_endpoint` | Valid URL returned |
+| 3 | POST to proxy endpoint | HTTP 201 + `decisionRecordId` |
+| 4 | Record in Verify Console | Visible under correct workspace |
+| 5 | Verify the record | `hashMatches: true`, `signatureValid: true` |
+| 6 | Policy filtering | Allowed fields present, dropped fields absent |
+| 7 | CloudWatch logs | No API keys, prompts, responses, or PII |
+
+## Security Boundary
+
+The capture proxy is the customer-owned security boundary between your application and Verify.
+
+- **You own** the Lambda, the API Gateway, and the policy
+- **You control** what fields leave your account
+- **Obligra has no access** to your account, VPC, or data at rest
+- **The policy is auditable** — compliance can review it without accessing application code
+- **Secrets stay local** — API key is encrypted in Lambda env vars, never transmitted in logs
+
 ## Cleanup
 
 ```bash
@@ -255,6 +310,13 @@ terraform destroy
 ```
 
 Removes all resources. No orphaned resources remain.
+
+## Learn More
+
+- [Troubleshooting Verify Integrations](docs/troubleshooting.md)
+- [Customer Integration Reference Architecture](https://github.com/obligra/verify-cloudformation/blob/main/docs/customer-integration-reference-architecture.md)
+- [Verify Node SDK](https://github.com/obligra/verify-node-sdk)
+- [CloudFormation Deployment Option](https://github.com/obligra/verify-cloudformation)
 
 ## Outputs
 
