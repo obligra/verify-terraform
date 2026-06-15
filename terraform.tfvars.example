@@ -1,0 +1,22 @@
+aws_region       = "us-west-2"
+aws_profile      = "your-aws-profile"
+environment_name = "sandbox"
+verify_api_key   = "obv_your_key_here"
+
+# Optional: capture policy (empty = forward_all)
+# capture_policy_json = <<-EOT
+# {
+#   "mode": "policy",
+#   "capture": {
+#     "operationalContext": {
+#       "allowedKeys": ["ticketId", "severity"],
+#       "dropUnknownKeys": true
+#     },
+#     "prompt": { "allow": true, "maxLength": 256 },
+#     "response": { "allow": true, "maxLength": 256 }
+#   },
+#   "security": {
+#     "neverForward": ["ssn", "creditCard"]
+#   }
+# }
+# EOT
