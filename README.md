@@ -24,7 +24,7 @@ Customer-Owned Lambda Capture Proxy (your account)
 │       Capture Policy Engine         │
 │                                     │
 │  Capture Decision Policy            │
-│  (forward_all / intent_only / policy)│
+│  (forward_all / intent_only /policy)│
 │                                     │
 │  Field Retention Policy             │
 │  (allow / drop / redact / truncate) │
