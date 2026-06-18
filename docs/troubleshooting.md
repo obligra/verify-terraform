@@ -166,6 +166,14 @@ Run the identity check first.
 
 Ensure `verify_api_key` is declared with `sensitive = true` (already done in the module).
 
+### Terraform and CloudFormation IAM Role Naming Collisions
+
+When Terraform and CloudFormation deployments coexist in the same AWS account, IAM role names will collide if the same `environment_name` value is used.
+
+Both deployment methods create a role named `verify-capture-proxy-{environment_name}-role`. If one method already deployed with `sandbox`, the other must use a different value.
+
+**Resolution:** Use a unique `environment_name` for each deployment method in the same account.
+
 **Never commit:**
 - `terraform.tfvars` (contains your API key)
 - `*.tfstate` (contains resource details including environment variables)
