@@ -1,6 +1,6 @@
 # Obligra Verify — Terraform Capture Proxy
 
-> **Status: Early Preview** — This module is under active development. APIs and behavior may change.
+> **Status: Public Preview** — Validated against the Obligra Verify production platform. Suitable for development, testing, and production deployments.
 
 ## What This Is
 
@@ -163,7 +163,7 @@ Only the approved fields reach the Verify API. Dropped fields never leave the cu
 | `aws_region` | No | `us-west-2` | AWS region for deployment |
 | `aws_profile` | No | — | AWS CLI profile to use |
 | `environment_name` | No | `sandbox` | Environment label (sandbox/dev/staging/production) |
-| `verify_api_base_url` | No | Preview URL | Obligra Verify API base URL |
+| `verify_api_base_url` | No | `https://api.obligra.ai/api/v1` | Obligra Verify API base URL |
 | `verify_api_key` | **Yes** | — | Obligra Verify API key (sensitive, never logged) |
 | `capture_policy_json` | No | `""` (forward_all) | JSON capture policy |
 | `allowed_origins` | No | `*` | CORS allowed origins |

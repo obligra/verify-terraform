@@ -15,7 +15,7 @@ Before investigating any issue, confirm these basics:
 | API key is valid | Not revoked, not expired, full key (prefix + secret) |
 | Workspace matches | Same workspace as your console login |
 | `decisionRecordId` was returned | Check the HTTP 201 response body |
-| Correct API endpoint | Preview URL vs production URL |
+| Correct API endpoint | Verify API base URL matches your environment |
 
 ---
 
@@ -34,7 +34,7 @@ Before investigating any issue, confirm these basics:
 | Wrong workspace | Your console user may be viewing a different workspace than the API key's workspace |
 | Wrong user/tenant | The API key belongs to a specific tenant — ensure your console login is the same tenant |
 | Policy skipped the record | Check if `capture_policy_json` has rules that would filter the payload |
-| API base URL mismatch | Preview URL and production URL are different environments with separate databases |
+| API base URL mismatch | Ensure `verify_api_base_url` points to the correct Verify environment |
 
 **Resolution steps:**
 1. Copy the `decisionRecordId` from the proxy response

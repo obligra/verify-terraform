@@ -23,7 +23,7 @@ variable "environment_name" {
 
 variable "verify_api_base_url" {
   type        = string
-  default     = "https://y1h3onv0f1.execute-api.us-east-1.amazonaws.com/dev"
+  default     = "https://api.obligra.ai/api/v1"
   description = "Obligra Verify API base URL"
 }
 
