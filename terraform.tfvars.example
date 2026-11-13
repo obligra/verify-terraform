@@ -3,7 +3,7 @@ aws_profile      = "your-aws-profile"
 environment_name = "sandbox"
 verify_api_key   = "obv_your_key_here"
 
-# Optional: capture policy (empty = forward_all)
+# Optional: capture policy (empty = intent_only)
 # capture_policy_json = <<-EOT
 # {
 #   "mode": "policy",

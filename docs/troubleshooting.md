@@ -1,3 +1,5 @@
+> **Historical documentation, superseded for this remediation candidate.** This document describes an earlier implementation or test. Do not follow its deployment, authentication, API URL or security claims as current guidance. Use the [current README](../README.md), which describes IAM-signed requests, the current capture route and outstanding release gates. Historical results below have not been rerun by this documentation update.
+
 # Troubleshooting Verify Integrations
 
 This guide covers common deployment, validation, and integration issues for the Obligra Verify capture proxy.

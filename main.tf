@@ -1,9 +1,13 @@
 terraform {
   required_version = ">= 1.5"
   required_providers {
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.8"
+    }
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = "~> 6.73"
     }
   }
 }
@@ -49,7 +53,7 @@ resource "aws_iam_role_policy" "proxy_logs" {
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ]
-      Resource = "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:${local.log_group}:*"
+      Resource = "arn:aws:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:log-group:${local.log_group}:*"
     }]
   })
 }
@@ -73,7 +77,7 @@ resource "aws_lambda_function" "proxy" {
   function_name    = local.function_name
   role             = aws_iam_role.proxy_lambda.arn
   handler          = "index.handler"
-  runtime          = "nodejs20.x"
+  runtime          = "nodejs24.x"
   memory_size      = 128
   timeout          = 15
   filename         = data.archive_file.proxy_lambda.output_path
@@ -84,7 +88,6 @@ resource "aws_lambda_function" "proxy" {
       VERIFY_API_BASE_URL = var.verify_api_base_url
       VERIFY_API_KEY      = var.verify_api_key
       ENVIRONMENT_NAME    = var.environment_name
-      ALLOWED_ORIGINS     = var.allowed_origins
       CAPTURE_POLICY_JSON = var.capture_policy_json
     }
   }
@@ -111,16 +114,12 @@ resource "aws_apigatewayv2_integration" "proxy" {
 }
 
 resource "aws_apigatewayv2_route" "post" {
-  api_id    = aws_apigatewayv2_api.proxy.id
-  route_key = "POST /decision-records"
-  target    = "integrations/${aws_apigatewayv2_integration.proxy.id}"
+  api_id             = aws_apigatewayv2_api.proxy.id
+  route_key          = "POST /decision-records"
+  authorization_type = "AWS_IAM"
+  target             = "integrations/${aws_apigatewayv2_integration.proxy.id}"
 }
 
-resource "aws_apigatewayv2_route" "options" {
-  api_id    = aws_apigatewayv2_api.proxy.id
-  route_key = "OPTIONS /decision-records"
-  target    = "integrations/${aws_apigatewayv2_integration.proxy.id}"
-}
 
 resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.proxy.id
@@ -134,3 +133,4 @@ resource "aws_lambda_permission" "apigw" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.proxy.execution_arn}/*"
 }
+

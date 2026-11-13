@@ -15,7 +15,7 @@ output "proxy_function_arn" {
 
 output "capture_mode" {
   description = "Active capture policy mode"
-  value       = var.capture_policy_json != "" ? "policy" : "forward_all"
+  value       = trimspace(var.capture_policy_json) == "" ? "intent_only" : try(jsondecode(var.capture_policy_json).mode, "invalid-policy")
 }
 
 output "api_gateway_id" {
@@ -30,5 +30,6 @@ output "account_id" {
 
 output "region" {
   description = "AWS region where proxy is deployed"
-  value       = data.aws_region.current.name
+  value       = data.aws_region.current.region
 }
+
