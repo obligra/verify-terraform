@@ -1,0 +1,23 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const code=require('./load-handler.cjs');
+const body={workflowId:'synthetic',model:{provider:'synthetic',modelId:'offline'},operationalContext:{ticketId:'DEMO'}};
+function runtime(policy){let calls=0;const context={process:{env:{CAPTURE_POLICY_JSON:policy,VERIFY_API_KEY:'SYNTHETIC'}},exports:{},Buffer,URL,setTimeout,clearTimeout,require(){return{request(){calls++;throw Error('NO_NETWORK')}}}};vm.createContext(context);vm.runInContext(code,context);return {apply:b=>vm.runInContext('applyPolicy('+JSON.stringify(b)+')',context),handler:context.exports.handler,calls:()=>calls};}
+let count=0;const test=(name,fn)=>{fn();count++;console.log('PASS '+name)};
+test('malformed fails closed',()=>assert.throws(()=>runtime('{bad').apply(body)));
+test('unknown mode fails closed',()=>assert.throws(()=>runtime('{"mode":"other"}').apply(body)));
+test('default minimal capture',()=>assert.equal(runtime('').apply({...body,aiAssistedContext:{prompt:'fictional'}}).aiAssistedContext,undefined));
+test('forward_all honors exclusions recursively',()=>assert.equal(runtime('{"mode":"forward_all","security":{"neverForward":["prompt"]}}').apply({...body,aiAssistedContext:{prompt:'fictional'}}).aiAssistedContext.prompt,undefined));
+test('policy prompt neverForward cannot re-add',()=>assert.equal(runtime('{"mode":"policy","security":{"neverForward":["prompt"]}}').apply({...body,aiAssistedContext:{prompt:'fictional'}}).aiAssistedContext,undefined));
+test('policy redacted prompt cannot re-add',()=>assert.equal(runtime('{"mode":"policy","capture":{"operationalContext":{"redactedKeys":["prompt"]}}}').apply({...body,aiAssistedContext:{prompt:'fictional'}}).aiAssistedContext,undefined));
+test('AI stays separate',()=>{const r=runtime('{"mode":"policy","capture":{"prompt":{"allow":true}}}').apply({...body,aiAssistedContext:{prompt:'fictional'}});assert.equal(r.aiAssistedContext.prompt,'fictional');assert.equal(r.operationalContext.prompt,undefined)});
+test('oversize reference rejected',()=>assert.throws(()=>runtime('{"mode":"forward_all"}').apply({...body,operationalContext:{ticketId:'x'.repeat(129)}})));
+test('AI not truncated silently',()=>assert.throws(()=>runtime('{"mode":"policy","capture":{"prompt":{"allow":true,"maxLength":3}}}').apply({...body,aiAssistedContext:{prompt:'fictional'}})));
+test('malformed arrays rejected',()=>assert.throws(()=>runtime('{"mode":"policy","security":{"neverForward":"bad"}}').apply(body)));
+test('model exclusion produces rejection not invalid downstream record',()=>assert.throws(()=>runtime('{"mode":"policy","capture":{"model":{"includeProvider":false}}}').apply(body)));
+test('legacy prompt placement rejected in policy',()=>assert.throws(()=>runtime('{"mode":"policy"}').apply({...body,operationalContext:{prompt:'fictional'}})));
+test('unknown security typo fails closed in forward_all',()=>assert.throws(()=>runtime('{"mode":"forward_all","security":{"neverFoward":["prompt"]}}').apply(body)));
+test('unknown capture property fails closed',()=>assert.throws(()=>runtime('{"mode":"policy","capture":{"promt":{"allow":true}}}').apply(body)));
+test('unknown top-level property fails closed',()=>assert.throws(()=>runtime('{"mode":"forward_all","securty":{}}').apply(body)));
+test('unknown nested rule fails closed',()=>assert.throws(()=>runtime('{"mode":"policy","capture":{"prompt":{"alow":true}}}').apply(body)));
+test('dropUnknownKeys false rejected rather than ignored',()=>assert.throws(()=>runtime('{"mode":"policy","capture":{"operationalContext":{"dropUnknownKeys":false}}}').apply(body)));
+(async()=>{const r=runtime('{"mode":"forward_all"}');const result=await r.handler({requestContext:{http:{method:'POST'}},body:JSON.stringify(body)});assert.equal(result.statusCode,401);assert.equal(r.calls(),0);console.log('PASS unauthenticated caller never reaches transport');console.log(count+1+' focused offline tests passed; no live calls');})().catch(e=>{console.error(e);process.exitCode=1});

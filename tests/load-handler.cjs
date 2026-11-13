@@ -1,0 +1,1 @@
+const fs=require('fs'),path=require('path');module.exports=fs.readFileSync(path.join(__dirname,'../lambda/index.mjs'),'utf8').replace("import https from 'https';","const https = require('https');").replace('export const handler = async event =>','exports.handler = async event =>');

@@ -84,7 +84,6 @@ resource "aws_lambda_function" "proxy" {
       VERIFY_API_BASE_URL = var.verify_api_base_url
       VERIFY_API_KEY      = var.verify_api_key
       ENVIRONMENT_NAME    = var.environment_name
-      ALLOWED_ORIGINS     = var.allowed_origins
       CAPTURE_POLICY_JSON = var.capture_policy_json
     }
   }
@@ -113,14 +112,10 @@ resource "aws_apigatewayv2_integration" "proxy" {
 resource "aws_apigatewayv2_route" "post" {
   api_id    = aws_apigatewayv2_api.proxy.id
   route_key = "POST /decision-records"
+  authorization_type = "AWS_IAM"
   target    = "integrations/${aws_apigatewayv2_integration.proxy.id}"
 }
 
-resource "aws_apigatewayv2_route" "options" {
-  api_id    = aws_apigatewayv2_api.proxy.id
-  route_key = "OPTIONS /decision-records"
-  target    = "integrations/${aws_apigatewayv2_integration.proxy.id}"
-}
 
 resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.proxy.id
@@ -134,3 +129,4 @@ resource "aws_lambda_permission" "apigw" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.proxy.execution_arn}/*"
 }
+

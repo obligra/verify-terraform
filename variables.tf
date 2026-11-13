@@ -23,7 +23,7 @@ variable "environment_name" {
 
 variable "verify_api_base_url" {
   type        = string
-  default     = "https://api.obligra.ai/api/v1"
+  default     = "https://api.obligra.ai"
   description = "Obligra Verify API base URL"
 }
 
@@ -35,15 +35,10 @@ variable "verify_api_key" {
 
 variable "capture_policy_json" {
   type        = string
-  default     = ""
-  description = "JSON capture policy. Empty = forward_all mode."
+  default     = "{\"mode\":\"intent_only\"}"
+  description = "JSON capture policy. Empty uses intent_only; invalid policy is rejected."
 }
 
-variable "allowed_origins" {
-  type        = string
-  default     = "*"
-  description = "Comma-separated CORS origins. Use '*' for dev only."
-}
 
 variable "log_retention_days" {
   type        = number
@@ -55,3 +50,4 @@ variable "log_retention_days" {
     error_message = "Must be one of: 1, 3, 5, 7, 14, 30, 60, 90"
   }
 }
+
