@@ -30,6 +30,6 @@ output "account_id" {
 
 output "region" {
   description = "AWS region where proxy is deployed"
-  value       = data.aws_region.current.name
+  value       = data.aws_region.current.region
 }
 

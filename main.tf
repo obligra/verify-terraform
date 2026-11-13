@@ -1,9 +1,13 @@
 terraform {
   required_version = ">= 1.5"
   required_providers {
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.8"
+    }
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = "~> 6.73"
     }
   }
 }
@@ -49,7 +53,7 @@ resource "aws_iam_role_policy" "proxy_logs" {
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ]
-      Resource = "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:${local.log_group}:*"
+      Resource = "arn:aws:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:log-group:${local.log_group}:*"
     }]
   })
 }
@@ -73,7 +77,7 @@ resource "aws_lambda_function" "proxy" {
   function_name    = local.function_name
   role             = aws_iam_role.proxy_lambda.arn
   handler          = "index.handler"
-  runtime          = "nodejs20.x"
+  runtime          = "nodejs24.x"
   memory_size      = 128
   timeout          = 15
   filename         = data.archive_file.proxy_lambda.output_path
@@ -110,10 +114,10 @@ resource "aws_apigatewayv2_integration" "proxy" {
 }
 
 resource "aws_apigatewayv2_route" "post" {
-  api_id    = aws_apigatewayv2_api.proxy.id
-  route_key = "POST /decision-records"
+  api_id             = aws_apigatewayv2_api.proxy.id
+  route_key          = "POST /decision-records"
   authorization_type = "AWS_IAM"
-  target    = "integrations/${aws_apigatewayv2_integration.proxy.id}"
+  target             = "integrations/${aws_apigatewayv2_integration.proxy.id}"
 }
 
 

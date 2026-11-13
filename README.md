@@ -96,6 +96,10 @@ CloudFormation `NoEcho` and Terraform `sensitive` mask selected displays, not ev
 
 The remediation handler does not log request bodies, identifiers or policy parse exceptions. Audit your application, infrastructure and external tooling independently. Absence of handler logs is not proof that other components never log data.
 
+## Runtime and provider compatibility
+
+This candidate targets the supported AWS Lambda `nodejs24.x` runtime (Amazon Linux 2023). Terraform uses the official AWS provider `~> 6.73` and archive provider `~> 2.8`; provider5.x does not accept Node24. Review provider-major migration implications for an existing deployment before any apply. Source changes do not upgrade a deployed runtime automatically.
+
 ## Acceptance before release
 
 1. Validate CloudFormation and Terraform configuration and package generation.
